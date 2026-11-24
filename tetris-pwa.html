@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#00ffcc">
+    <meta name="description" content="Tetris Avanzato - Il classico gioco Tetris con grafica moderna e controlli touch">
+    <title>Tetris Avanzato</title>
+    <link rel="manifest" href="data:application/json,{}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #0a0a1a, #1a1a3e);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow: hidden;
+        }
+
+        .game-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            width: 100%;
+            max-width: 420px;
+            height: 100vh;
+            height: 100dvh;
+        }
+
+        /* Header */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 5px 10px;
+        }
+
+        .game-title {
+            font-size: 24px;
+            font-weight: 900;
+            background: linear-gradient(45deg, #00ffcc, #00ccff, #cc00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 4px;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+
+        .stat { text-align: center; }
+        .stat-label { color: #888; font-size: 9px; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-value { color: #00ffcc; font-weight: bold; font-size: 14px; }
+
+        /* Main game area */
+        .game-container {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            width: 100%;
+            justify-content: center;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .game-board-wrapper {
+            position: relative;
+            border: 2px solid rgba(0, 255, 204, 0.5);
+            border-radius: 6px;
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.2), inset 0 0 20px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        #game-canvas { display: block; background: rgba(0, 0, 0, 0.6); }
+
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 85px;
+        }
+
+        .panel-box {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 204, 0.2);
+        }
+
+        .panel-box h3 {
+            margin: 0 0 6px 0;
+            color: #00ffcc;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        .score-display {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffcc00;
+            text-align: center;
+        }
+
+        #next-piece-canvas { margin: 0 auto; display: block; }
+
+        /* Overlays */
+        .game-over-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+        }
+
+        .game-over-text {
+            font-size: 28px;
+            color: #ff4444;
+            text-shadow: 0 0 20px rgba(255, 68, 68, 0.7);
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .final-score {
+            font-size: 14px;
+            color: #ffcc00;
+            margin-bottom: 15px;
+        }
+
+        .restart-button {
+            background: linear-gradient(45deg, #00ccff, #00ffcc);
+            border: none;
+            padding: 10px 25px;
+            font-size: 14px;
+            color: #000;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .pause-overlay {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 28px;
+            color: #ffcc00;
+            text-shadow: 0 0 20px rgba(255, 204, 0, 0.7);
+            z-index: 10;
+            display: none;
+            font-weight: bold;
+        }
+
+        /* Touch Controls */
+        .touch-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, auto);
+            gap: 8px;
+            width: 100%;
+            max-width: 280px;
+            padding: 5px 0;
+        }
+
+        .touch-btn {
+            background: rgba(0, 255, 204, 0.1);
+            border: 2px solid rgba(0, 255, 204, 0.3);
+            border-radius: 12px;
+            padding: 16px 8px;
+            color: #00ffcc;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .touch-btn:active {
+            background: rgba(0, 255, 204, 0.3);
+            border-color: #00ffcc;
+            transform: scale(0.93);
+        }
+
+        .touch-btn.drop-btn {
+            grid-column: 1 / -1;
+            font-size: 16px;
+            background: rgba(255, 204, 0, 0.1);
+            border-color: rgba(255, 204, 0, 0.3);
+            color: #ffcc00;
+            padding: 14px 8px;
+        }
+
+        .touch-btn.drop-btn:active {
+            background: rgba(255, 204, 0, 0.3);
+            border-color: #ffcc00;
+        }
+
+        /* Install banner */
+        .install-banner {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(45deg, #00ccff, #00ffcc);
+            color: #000;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 5px 20px rgba(0, 255, 204, 0.4);
+            font-size: 13px;
+        }
+
+        /* Start screen */
+        .start-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+        }
+
+        .start-title {
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(45deg, #00ffcc, #00ccff, #cc00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 6px;
+            margin-bottom: 30px;
+        }
+
+        .start-btn {
+            background: linear-gradient(45deg, #00ccff, #00ffcc);
+            border: none;
+            padding: 15px 40px;
+            font-size: 20px;
+            color: #000;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .start-hint {
+            color: #888;
+            font-size: 12px;
+            text-align: center;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-wrapper">
+        <div class="game-header">
+            <div class="game-title">TETRIS</div>
+            <div class="stats-bar">
+                <div class="stat">
+                    <div class="stat-label">Livello</div>
+                    <div class="stat-value" id="level">1</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Righe</div>
+                    <div class="stat-value" id="lines">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-container">
+            <div class="game-board-wrapper">
+                <canvas id="game-canvas"></canvas>
+                <div class="start-screen" id="start-screen">
+                    <div class="start-title">TETRIS</div>
+                    <button class="start-btn" onclick="startGame()">GIOCA</button>
+                    <div class="start-hint">
+                        Tocca per ruotare<br>
+                        Scorri per muovere<br>
+                        Pulsanti touch disponibili
+                    </div>
+                </div>
+                <div class="game-over-overlay" id="game-over">
+                    <div class="game-over-text">GAME OVER</div>
+                    <div class="final-score" id="final-score">Punteggio: 0</div>
+                    <button class="restart-button" onclick="restartGame()">Ricomincia</button>
+                </div>
+                <div class="pause-overlay" id="pause">PAUSA</div>
+            </div>
+
+            <div class="side-panel">
+                <div class="panel-box">
+                    <h3>Punteggio</h3>
+                    <div class="score-display" id="score">0</div>
+                </div>
+                <div class="panel-box">
+                    <h3>Prossimo</h3>
+                    <canvas id="next-piece-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Touch Controls -->
+        <div class="touch-controls" id="touch-controls">
+            <button class="touch-btn" data-action="rotate">↻</button>
+            <button class="touch-btn" data-action="up">↑</button>
+            <button class="touch-btn" data-action="pause">⏸</button>
+            <button class="touch-btn" data-action="left">←</button>
+            <button class="touch-btn" data-action="down">↓</button>
+            <button class="touch-btn" data-action="right">→</button>
+            <button class="touch-btn drop-btn" data-action="drop">⬇ CADUTA ⬇</button>
+        </div>
+    </div>
+
+    <script>
+        // ==================== CONFIGURAZIONE ====================
+        const COLS = 10;
+        const ROWS = 20;
+        let BLOCK_SIZE = 28;
+
+        // Canvas
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const nextCanvas = document.getElementById('next-piece-canvas');
+        const nextCtx = nextCanvas.getContext('2d');
+
+        // Responsive sizing
+        function resizeCanvas() {
+            const headerH = 50;
+            const controlsH = 160;
+            const padding = 40;
+            const availableH = window.innerHeight - headerH - controlsH - padding;
+            const availableW = Math.min(window.innerWidth - 30, 320);
+
+            BLOCK_SIZE = Math.floor(Math.min(availableW / COLS, availableH / ROWS));
+            BLOCK_SIZE = Math.max(BLOCK_SIZE, 18);
+            BLOCK_SIZE = Math.min(BLOCK_SIZE, 32);
+
+            canvas.width = BLOCK_SIZE * COLS;
+            canvas.height = BLOCK_SIZE * ROWS;
+
+            const ns = Math.max(60, Math.min(100, window.innerWidth * 0.2));
+            nextCanvas.width = ns;
+            nextCanvas.height = ns;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', () => { resizeCanvas(); drawBoard(); drawPiece(); drawNextPiece(); });
+
+        // ==================== TESSERE ====================
+        const SHAPES = [
+            { shape: [[1,1,1,1]], color: '#00ffff' },
+            { shape: [[1,1],[1,1]], color: '#ffff00' },
+            { shape: [[0,1,0],[1,1,1]], color: '#cc00ff' },
+            { shape: [[0,1,1],[1,1,0]], color: '#00ff44' },
+            { shape: [[1,1,0],[0,1,1]], color: '#ff3333' },
+            { shape: [[1,0,0],[1,1,1]], color: '#3366ff' },
+            { shape: [[0,0,1],[1,1,1]], color: '#ff8c00' }
+        ];
+
+        // ==================== STATO DI GIOCO ====================
+        let board = [];
+        let currentPiece = null;
+        let nextPiece = null;
+        let score = 0;
+        let level = 1;
+        let lines = 0;
+        let gameLoop = null;
+        let isGameOver = false;
+        let isPaused = false;
+        let isGameStarted = false;
+        let dropInterval = 1000;
+
+        // ==================== FUNZIONI BORDO ====================
+        function createBoard() {
+            return Array(ROWS).fill().map(() => Array(COLS).fill(null));
+        }
+
+        function createPiece() {
+            const s = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+            return { shape: s.shape.map(r => [...r]), color: s.color, x: Math.floor(COLS/2) - Math.floor(s.shape[0].length/2), y: 0 };
+        }
+
+        // ==================== DISEGNO ====================
+        function drawBlock(context, x, y, color, size) {
+            const s = size || BLOCK_SIZE;
+            const p = 1;
+
+            context.fillStyle = color;
+            context.fillRect(x*s+p, y*s+p, s-p*2, s-p*2);
+
+            // Highlight top-left
+            const g = context.createLinearGradient(x*s, y*s, x*s+s, y*s+s);
+            g.addColorStop(0, 'rgba(255,255,255,0.35)');
+            g.addColorStop(0.4, 'rgba(255,255,255,0)');
+            g.addColorStop(1, 'rgba(0,0,0,0.25)');
+            context.fillStyle = g;
+            context.fillRect(x*s+p, y*s+p, s-p*2, s-p*2);
+
+            // Inner border highlight
+            context.strokeStyle = 'rgba(255,255,255,0.25)';
+            context.lineWidth = 1;
+            context.beginPath();
+            context.moveTo((x+1)*s-p, y*s+p);
+            context.lineTo(x*s+p, y*s+p);
+            context.lineTo(x*s+p, (y+1)*s-p);
+            context.stroke();
+
+            // Dark border
+            context.strokeStyle = 'rgba(0,0,0,0.4)';
+            context.lineWidth = 1;
+            context.strokeRect(x*s+p, y*s+p, s-p*2, s-p*2);
+        }
+
+        function drawBoard() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Grid
+            ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i <= COLS; i++) { ctx.beginPath(); ctx.moveTo(i*BLOCK_SIZE,0); ctx.lineTo(i*BLOCK_SIZE,canvas.height); ctx.stroke(); }
+            for (let i = 0; i <= ROWS; i++) { ctx.beginPath(); ctx.moveTo(0,i*BLOCK_SIZE); ctx.lineTo(canvas.width,i*BLOCK_SIZE); ctx.stroke(); }
+
+            // Placed blocks
+            for (let y = 0; y < ROWS; y++) {
+                for (let x = 0; x < COLS; x++) {
+                    if (board[y][x]) drawBlock(ctx, x, y, board[y][x]);
+                }
+            }
+
+            // Ghost piece
+            if (currentPiece && !isPaused && !isGameOver) {
+                let gy = currentPiece.y;
+                while (isValid(currentPiece, 0, gy - currentPiece.y + 1)) gy++;
+                if (gy !== currentPiece.y) {
+                    ctx.globalAlpha = 0.15;
+                    currentPiece.shape.forEach((row, y) => row.forEach((v, x) => { if(v) drawBlock(ctx, currentPiece.x+x, gy+y, currentPiece.color); }));
+                    ctx.globalAlpha = 1;
+                }
+            }
+        }
+
+        function drawPiece() {
+            if (!currentPiece || isPaused || isGameOver) return;
+            currentPiece.shape.forEach((row, y) => row.forEach((v, x) => { if(v) drawBlock(ctx, currentPiece.x+x, currentPiece.y+y, currentPiece.color); }));
+        }
+
+        function drawNextPiece() {
+            nextCtx.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
+            if (!nextPiece) return;
+            const bs = Math.floor(nextCanvas.width / (Math.max(nextPiece.shape[0].length, nextPiece.shape.length) + 1));
+            const ox = (nextCanvas.width - nextPiece.shape[0].length * bs) / 2;
+            const oy = (nextCanvas.height - nextPiece.shape.length * bs) / 2;
+            nextPiece.shape.forEach((row, y) => row.forEach((v, x) => { if(v) drawBlock(nextCtx, ox/bs+x, oy/bs+y, nextPiece.color, bs); }));
+        }
+
+        // ==================== LOGICA DI GIOCO ====================
+        function isValid(piece, dx=0, dy=0) {
+            return piece.shape.every((row, y) => row.every((v, x) => {
+                if (!v) return true;
+                const nx = piece.x + x + dx, ny = piece.y + y + dy;
+                return nx >= 0 && nx < COLS && ny < ROWS && (ny < 0 || !board[ny][nx]);
+            }));
+        }
+
+        function movePiece(dx, dy) {
+            if (isPaused || isGameOver || !currentPiece) return false;
+            if (isValid(currentPiece, dx, dy)) { currentPiece.x += dx; currentPiece.y += dy; return true; }
+            return false;
+        }
+
+        function rotatePiece() {
+            if (isPaused || isGameOver || !currentPiece) return;
+            const orig = currentPiece.shape.map(r => [...r]);
+            const rot = currentPiece.shape[0].map((_, i) => currentPiece.shape.map(r => r[i]).reverse());
+            currentPiece.shape = rot;
+            const kicks = [0, -1, 1, -2, 2];
+            if (!kicks.some(k => { if (isValid(currentPiece, k, 0)) { currentPiece.x += k; return true; } return false; })) {
+                currentPiece.shape = orig;
+            }
+        }
+
+        function hardDrop() {
+            if (isPaused || isGameOver) return;
+            let d = 0;
+            while (isValid(currentPiece, 0, 1)) { currentPiece.y++; d++; }
+            score += d * 2;
+            updateUI();
+            lockPiece();
+        }
+
+        function softDrop() {
+            if (!movePiece(0, 1)) lockPiece();
+            else { score += 1; updateUI(); }
+        }
+
+        function lockPiece() {
+            currentPiece.shape.forEach((row, y) => row.forEach((v, x) => { if(v && currentPiece.y+y >= 0) board[currentPiece.y+y][currentPiece.x+x] = currentPiece.color; }));
+
+            let cleared = 0;
+            for (let y = ROWS-1; y >= 0; y--) {
+                if (board[y].every(c => c !== null)) { board.splice(y,1); board.unshift(Array(COLS).fill(null)); cleared++; y++; }
+            }
+
+            if (cleared > 0) {
+                const pts = [0, 100, 300, 500, 800];
+                score += pts[cleared] * level;
+                lines += cleared;
+                level = Math.floor(lines / 10) + 1;
+                dropInterval = Math.max(100, 1000 - (level-1) * 80);
+                clearInterval(gameLoop);
+                gameLoop = setInterval(update, dropInterval);
+            }
+
+            updateUI();
+            currentPiece = nextPiece;
+            nextPiece = createPiece();
+            drawNextPiece();
+
+            if (!isValid(currentPiece)) gameOver();
+        }
+
+        function updateUI() {
+            document.getElementById('score').textContent = score.toLocaleString();
+            document.getElementById('level').textContent = level;
+            document.getElementById('lines').textContent = lines;
+        }
+
+        // ==================== FLUSSO DI GIOCO ====================
+        function update() {
+            if (isPaused || isGameOver) return;
+            if (!movePiece(0, 1)) lockPiece();
+            drawBoard(); drawPiece();
+        }
+
+        function gameOver() {
+            isGameOver = true;
+            clearInterval(gameLoop);
+            document.getElementById('final-score').textContent = `Punteggio: ${score.toLocaleString()}`;
+            document.getElementById('game-over').style.display = 'flex';
+        }
+
+        function startGame() {
+            document.getElementById('start-screen').style.display = 'none';
+            isGameStarted = true;
+            restartGame();
+        }
+
+        function restartGame() {
+            board = createBoard();
+            score = 0; level = 1; lines = 0; dropInterval = 1000;
+            isGameOver = false; isPaused = false;
+            updateUI();
+            document.getElementById('game-over').style.display = 'none';
+            document.getElementById('pause').style.display = 'none';
+            currentPiece = createPiece();
+            nextPiece = createPiece();
+            drawNextPiece();
+            clearInterval(gameLoop);
+            gameLoop = setInterval(update, dropInterval);
+        }
+
+        function togglePause() {
+            if (isGameOver) return;
+            isPaused = !isPaused;
+            document.getElementById('pause').style.display = isPaused ? 'block' : 'none';
+        }
+
+        // ==================== CONTROLLI TASTIERA ====================
+        document.addEventListener('keydown', e => {
+            switch(e.key) {
+                case 'ArrowLeft': movePiece(-1,0); break;
+                case 'ArrowRight': movePiece(1,0); break;
+                case 'ArrowDown': softDrop(); break;
+                case 'ArrowUp': rotatePiece(); break;
+                case ' ': hardDrop(); e.preventDefault(); break;
+                case 'p': case 'P': togglePause(); break;
+            }
+            drawBoard(); drawPiece();
+        });
+
+        // ==================== CONTROLLI TOUCH ====================
+        document.querySelectorAll('.touch-btn').forEach(btn => {
+            const action = btn.dataset.action;
+            let repeatTimer = null;
+
+            const doAction = (e) => { e.preventDefault();
+                switch(action) {
+                    case 'left': movePiece(-1,0); break;
+                    case 'right': movePiece(1,0); break;
+                    case 'down': softDrop(); break;
+                    case 'rotate': rotatePiece(); break;
+                    case 'drop': hardDrop(); break;
+                    case 'pause': togglePause(); break;
+                }
+                drawBoard(); drawPiece();
+            };
+
+            btn.addEventListener('touchstart', e => { doAction(e);
+                if (['left','right','down'].includes(action)) repeatTimer = setInterval(doAction, 120);
+            });
+            btn.addEventListener('touchend', e => { e.preventDefault(); if(repeatTimer) { clearInterval(repeatTimer); repeatTimer=null; } });
+            btn.addEventListener('touchcancel', () => { if(repeatTimer) { clearInterval(repeatTimer); repeatTimer=null; } });
+            btn.addEventListener('mousedown', doAction);
+        });
+
+        // Swipe sul canvas
+        let tx = 0, ty = 0, tt = 0;
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); const t=e.touches[0]; tx=t.clientX; ty=t.clientY; tt=Date.now(); }, {passive:false});
+        canvas.addEventListener('touchmove', e => {
+            e.preventDefault();
+            if (isPaused || isGameOver) return;
+            const t = e.touches[0];
+            const dx = t.clientX - tx, dy = t.clientY - ty;
+            const th = BLOCK_SIZE * 0.7;
+            if (Math.abs(dx) > th) { movePiece(dx>0?1:-1, 0); tx=t.clientX; drawBoard(); drawPiece(); }
+            if (dy > th) { softDrop(); ty=t.clientY; drawBoard(); drawPiece(); }
+        }, {passive:false});
+        canvas.addEventListener('touchend', e => {
+            e.preventDefault();
+            if (Date.now()-tt < 200) { rotatePiece(); drawBoard(); drawPiece(); }
+        }, {passive:false});
+
+        // ==================== SERVICE WORKER INLINE ====================
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                self.addEventListener('install', e => self.skipWaiting());
+                self.addEventListener('activate', e => e.waitUntil(clients.claim()));
+                self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
+            `;
+            const blob = new Blob([swCode], {type: 'application/javascript'});
+            const swUrl = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(swUrl).catch(() => {});
+        }
+
+        // ==================== MANIFEST INLINE ====================
+        const manifest = {
+            name: "Tetris Avanzato",
+            short_name: "Tetris",
+            description: "Il classico gioco Tetris con grafica moderna e controlli touch",
+            start_url: ".",
+            display: "standalone",
+            orientation: "portrait",
+            background_color: "#0a0a1a",
+            theme_color: "#00ffcc",
+            icons: [{ src: "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="80" fill="#1a1a2e"/><rect x="204" y="164" width="104" height="104" rx="12" fill="#cc00ff"/><rect x="100" y="268" width="104" height="104" rx="12" fill="#cc00ff"/><rect x="204" y="268" width="104" height="104" rx="12" fill="#cc00ff"/><rect x="308" y="268" width="104" height="104" rx="12" fill="#cc00ff"/><rect x="100" y="60" width="104" height="104" rx="12" fill="#00ffff"/><rect x="204" y="60" width="104" height="104" rx="12" fill="#00ffff"/></svg>'), sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+        document.querySelector('link[rel="manifest"]').href = URL.createObjectURL(manifestBlob);
+
+        // ==================== INIZIALIZZAZIONE ====================
+        board = createBoard();
+        currentPiece = createPiece();
+        nextPiece = createPiece();
+        drawNextPiece();
+    </script>
+</body>
+</html>
