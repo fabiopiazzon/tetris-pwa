@@ -5,345 +5,230 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#00ffcc">
-    <meta name="description" content="Tetris Avanzato - Il classico gioco Tetris con grafica moderna e controlli touch">
-    <title>Tetris Avanzato</title>
+    <meta name="theme-color" content="#0f0c29">
+    <meta name="description" content="Tetris Wifiweb - Il classico gioco Tetris con branding personalizzato">
+    <title>Tetris Wifiweb</title>
     <link rel="manifest" href="data:application/json,{}">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
-            touch-action: manipulation;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
 
         body {
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #0a0a1a, #1a1a3e);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0; padding: 0;
+            background: linear-gradient(180deg, #0f0c29, #302b63, #24243e);
+            font-family: 'Orbitron', -apple-system, BlinkMacSystemFont, sans-serif;
             color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            min-height: 100dvh;
+            height: 100vh; height: 100dvh;
             overflow: hidden;
+            display: flex; flex-direction: column;
         }
 
-        .game-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            padding: 10px;
-            width: 100%;
-            max-width: 420px;
-            height: 100vh;
-            height: 100dvh;
-        }
-
-        /* Header */
-        .game-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            padding: 5px 10px;
-        }
-
-        .game-title {
-            font-size: 24px;
-            font-weight: 900;
-            background: linear-gradient(45deg, #00ffcc, #00ccff, #cc00ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: 4px;
-        }
-
-        .stats-bar {
-            display: flex;
-            gap: 12px;
-            font-size: 12px;
-        }
-
-        .stat { text-align: center; }
-        .stat-label { color: #888; font-size: 9px; text-transform: uppercase; letter-spacing: 1px; }
-        .stat-value { color: #00ffcc; font-weight: bold; font-size: 14px; }
-
-        /* Main game area */
-        .game-container {
-            display: flex;
-            gap: 10px;
-            align-items: flex-start;
-            width: 100%;
-            justify-content: center;
-            flex: 1;
-            min-height: 0;
-        }
-
-        .game-board-wrapper {
-            position: relative;
-            border: 2px solid rgba(0, 255, 204, 0.5);
-            border-radius: 6px;
-            box-shadow: 0 0 30px rgba(0, 255, 204, 0.2), inset 0 0 20px rgba(0, 0, 0, 0.5);
-            overflow: hidden;
+        .wifiweb-header {
+            text-align: center;
+            padding: env(safe-area-inset-top, 8px) 10px 4px;
+            background: linear-gradient(90deg, rgba(255,0,128,0.15), rgba(0,204,255,0.15));
+            border-bottom: 1px solid rgba(255,255,255,0.08);
             flex-shrink: 0;
         }
 
-        #game-canvas { display: block; background: rgba(0, 0, 0, 0.6); }
-
-        .side-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            min-width: 85px;
+        .wifiweb-logo {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: clamp(1rem, 4vw, 1.4rem); font-weight: 900; letter-spacing: 3px;
+            background: linear-gradient(90deg, #ff0080, #7928ca, #00d4ff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
         }
+
+        .wifiweb-logo .dot { width: 8px; height: 8px; border-radius: 50%; background: #ff0080; display: inline-block; animation: pulse 2s infinite; }
+
+        @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.3); } }
+
+        .level-bar-container {
+            margin-top: 4px; width: 80%; max-width: 200px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; margin-left: auto; margin-right: auto;
+        }
+
+        .level-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #ff0080, #00d4ff); border-radius: 3px; transition: width 0.3s ease; }
+
+        .level-name { font-size: clamp(0.5rem, 2vw, 0.7rem); color: rgba(255,255,255,0.5); margin-top: 2px; min-height: 1em; }
+
+        .game-stats {
+            display: flex; justify-content: space-around; align-items: center;
+            padding: 4px 10px; flex-shrink: 0;
+        }
+
+        .stat-item { text-align: center; }
+        .stat-label { font-size: clamp(0.5rem, 2vw, 0.65rem); color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; }
+        .stat-value { font-size: clamp(0.9rem, 3vw, 1.2rem); font-weight: 700; color: #00d4ff; }
+
+        .game-main {
+            display: flex; gap: 8px; align-items: flex-start; justify-content: center;
+            flex: 1; min-height: 0; padding: 4px 8px;
+        }
+
+        .board-frame {
+            border: 2px solid rgba(0,212,255,0.4); border-radius: 6px;
+            box-shadow: 0 0 25px rgba(0,212,255,0.15), inset 0 0 15px rgba(0,0,0,0.4);
+            overflow: hidden; flex-shrink: 0; position: relative;
+        }
+
+        #game-canvas { display: block; background: rgba(0,0,0,0.6); }
+
+        .side-panel { display: flex; flex-direction: column; gap: 6px; min-width: 70px; }
 
         .panel-box {
-            background: rgba(0, 0, 0, 0.4);
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid rgba(0, 255, 204, 0.2);
+            background: rgba(0,0,0,0.35); padding: 8px 6px; border-radius: 8px;
+            border: 1px solid rgba(0,212,255,0.15); text-align: center;
         }
 
-        .panel-box h3 {
-            margin: 0 0 6px 0;
-            color: #00ffcc;
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-align: center;
+        .panel-box h3 { font-size: clamp(0.45rem, 1.8vw, 0.6rem); color: #00d4ff; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; }
+
+        .score-val { font-size: clamp(1rem, 3.5vw, 1.4rem); font-weight: 900; color: #ffcc00; }
+
+        #next-piece-canvas { display: block; margin: 0 auto; }
+
+        .combo-display {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+            font-size: 2rem; font-weight: 900; color: #ff0080; text-shadow: 0 0 30px rgba(255,0,128,0.8);
+            pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 5;
         }
 
-        .score-display {
-            font-size: 18px;
-            font-weight: bold;
-            color: #ffcc00;
-            text-align: center;
+        .combo-display.show { opacity: 1; animation: comboPop 0.6s ease-out; }
+
+        @keyframes comboPop { 0% { transform: translate(-50%,-50%) scale(0.5); opacity: 0; } 50% { transform: translate(-50%,-50%) scale(1.3); opacity: 1; } 100% { transform: translate(-50%,-50%) scale(1); opacity: 0; } }
+
+        .level-up-flash {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, rgba(0,212,255,0.4), transparent);
+            pointer-events: none; opacity: 0; z-index: 4;
         }
 
-        #next-piece-canvas { margin: 0 auto; display: block; }
+        .level-up-flash.show { animation: flashAnim 0.8s ease-out; }
 
-        /* Overlays */
-        .game-over-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-            backdrop-filter: blur(5px);
+        @keyframes flashAnim { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+        .overlay-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.88); display: none; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 10; backdrop-filter: blur(5px);
         }
 
-        .game-over-text {
-            font-size: 28px;
-            color: #ff4444;
-            text-shadow: 0 0 20px rgba(255, 68, 68, 0.7);
-            margin-bottom: 10px;
-            font-weight: bold;
+        .overlay-screen.active { display: flex; }
+
+        .overlay-title { font-size: clamp(1.5rem, 6vw, 2.5rem); font-weight: 900; letter-spacing: 4px; margin-bottom: 20px; }
+
+        .title-gradient { background: linear-gradient(90deg, #ff0080, #7928ca, #00d4ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+        .overlay-subtitle { font-size: clamp(0.7rem, 2.5vw, 0.9rem); color: rgba(255,255,255,0.6); margin-bottom: 8px; }
+
+        .play-btn, .restart-btn {
+            background: linear-gradient(90deg, #ff0080, #7928ca); border: none;
+            padding: 12px 35px; font-size: clamp(1rem, 3.5vw, 1.2rem); color: white;
+            border-radius: 25px; cursor: pointer; font-weight: 700; font-family: inherit;
+            margin-top: 15px; letter-spacing: 2px; transition: transform 0.15s;
         }
 
-        .final-score {
-            font-size: 14px;
-            color: #ffcc00;
-            margin-bottom: 15px;
-        }
+        .play-btn:active, .restart-btn:active { transform: scale(0.95); }
 
-        .restart-button {
-            background: linear-gradient(45deg, #00ccff, #00ffcc);
-            border: none;
-            padding: 10px 25px;
-            font-size: 14px;
-            color: #000;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .pause-overlay {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 28px;
-            color: #ffcc00;
-            text-shadow: 0 0 20px rgba(255, 204, 0, 0.7);
-            z-index: 10;
-            display: none;
-            font-weight: bold;
-        }
-
-        /* Touch Controls */
-        .touch-controls {
+        .controls-bar {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(2, auto);
-            gap: 8px;
-            width: 100%;
-            max-width: 280px;
-            padding: 5px 0;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: auto auto;
+            gap: clamp(4px, 1vw, 8px);
+            padding: env(safe-area-inset-bottom, 8px) 8px 8px;
+            flex-shrink: 0;
         }
 
-        .touch-btn {
-            background: rgba(0, 255, 204, 0.1);
-            border: 2px solid rgba(0, 255, 204, 0.3);
-            border-radius: 12px;
-            padding: 16px 8px;
-            color: #00ffcc;
-            font-size: 24px;
-            cursor: pointer;
-            transition: all 0.1s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .ctrl-btn {
+            background: rgba(0,212,255,0.08); border: 2px solid rgba(0,212,255,0.25);
+            border-radius: clamp(8px, 2vw, 14px); color: #00d4ff;
+            font-size: clamp(1.2rem, 4.5vw, 1.8rem); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.1s ease; min-height: 48px; font-family: inherit;
         }
 
-        .touch-btn:active {
-            background: rgba(0, 255, 204, 0.3);
-            border-color: #00ffcc;
-            transform: scale(0.93);
-        }
+        .ctrl-btn:active { background: rgba(0,212,255,0.3); border-color: #00d4ff; transform: scale(0.92); }
 
-        .touch-btn.drop-btn {
-            grid-column: 1 / -1;
-            font-size: 16px;
-            background: rgba(255, 204, 0, 0.1);
-            border-color: rgba(255, 204, 0, 0.3);
-            color: #ffcc00;
-            padding: 14px 8px;
-        }
+        .ctrl-btn.drop-ctrl { grid-column: 1 / -1; font-size: clamp(0.7rem, 2.5vw, 0.9rem); background: rgba(255,0,128,0.1); border-color: rgba(255,0,128,0.3); color: #ff0080; letter-spacing: 2px; }
+        .ctrl-btn.drop-ctrl:active { background: rgba(255,0,128,0.3); border-color: #ff0080; }
 
-        .touch-btn.drop-btn:active {
-            background: rgba(255, 204, 0, 0.3);
-            border-color: #ffcc00;
-        }
-
-        /* Install banner */
-        .install-banner {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(45deg, #00ccff, #00ffcc);
-            color: #000;
-            padding: 12px 20px;
-            border-radius: 25px;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 100;
-            display: none;
-            box-shadow: 0 5px 20px rgba(0, 255, 204, 0.4);
-            font-size: 13px;
-        }
-
-        /* Start screen */
-        .start-screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 20;
-        }
-
-        .start-title {
-            font-size: 48px;
-            font-weight: 900;
-            background: linear-gradient(45deg, #00ffcc, #00ccff, #cc00ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: 6px;
-            margin-bottom: 30px;
-        }
-
-        .start-btn {
-            background: linear-gradient(45deg, #00ccff, #00ffcc);
-            border: none;
-            padding: 15px 40px;
-            font-size: 20px;
-            color: #000;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-
-        .start-hint {
-            color: #888;
-            font-size: 12px;
-            text-align: center;
-            line-height: 1.8;
-        }
+        .rainbow-mode body { animation: rainbowBg 3s linear infinite; }
+        @keyframes rainbowBg { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
     </style>
 </head>
 <body>
-    <div class="game-wrapper">
-        <div class="game-header">
-            <div class="game-title">TETRIS</div>
-            <div class="stats-bar">
-                <div class="stat">
-                    <div class="stat-label">Livello</div>
-                    <div class="stat-value" id="level">1</div>
+    <!-- Header Wifiweb -->
+    <div class="wifiweb-header">
+        <div class="wifiweb-logo">
+            <span class="dot"></span> WIFIWEB <span class="dot" style="background:#00d4ff;animation-delay:1s"></span>
+        </div>
+        <div class="level-bar-container"><div class="level-bar" id="level-bar"></div></div>
+        <div class="level-name" id="level-name">Livello 1: Principiante</div>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="game-stats">
+        <div class="stat-item"><div class="stat-label">Punteggio</div><div class="stat-value" id="score">0</div></div>
+        <div class="stat-item"><div class="stat-label">Livello</div><div class="stat-value" id="level">1</div></div>
+        <div class="stat-item"><div class="stat-label">Righe</div><div class="stat-value" id="lines">0</div></div>
+        <div class="stat-item"><div class="stat-label">Combo</div><div class="stat-value" id="combo-display" style="color:#ff0080">x1</div></div>
+    </div>
+
+    <!-- Main game area -->
+    <div class="game-main">
+        <div class="board-frame" id="board-frame">
+            <canvas id="game-canvas"></canvas>
+            <div class="level-up-flash" id="level-up-flash"></div>
+            <div class="combo-display" id="combo-popup"></div>
+
+            <!-- Start screen -->
+            <div class="overlay-screen active" id="start-screen">
+                <div class="overlay-title title-gradient">TETRIS</div>
+                <div class="overlay-subtitle">Wifiweb Edition</div>
+                <button class="play-btn" onclick="startGame()">GIOCA</button>
+                <div class="overlay-subtitle" style="margin-top:15px;font-size:clamp(0.5rem,2vw,0.65rem)">
+                    ↑↑↓↓←→←→BA = Segreto!<br>
+                    Scorri per muovere • Tocca per ruotare
                 </div>
-                <div class="stat">
-                    <div class="stat-label">Righe</div>
-                    <div class="stat-value" id="lines">0</div>
-                </div>
+            </div>
+
+            <!-- Game over -->
+            <div class="overlay-screen" id="game-over">
+                <div class="overlay-title" style="color:#ff4444;text-shadow:0 0 20px rgba(255,68,68,0.7)">GAME OVER</div>
+                <div class="overlay-subtitle" id="final-score">Punteggio: 0</div>
+                <div class="overlay-subtitle" id="final-level">Livello raggiunto: 1</div>
+                <button class="restart-btn" onclick="restartGame()">Ricomincia</button>
+            </div>
+
+            <!-- Pause -->
+            <div class="overlay-screen" id="pause-overlay">
+                <div class="overlay-title title-gradient">PAUSA</div>
+                <button class="play-btn" onclick="togglePause()">Continua</button>
             </div>
         </div>
 
-        <div class="game-container">
-            <div class="game-board-wrapper">
-                <canvas id="game-canvas"></canvas>
-                <div class="start-screen" id="start-screen">
-                    <div class="start-title">TETRIS</div>
-                    <button class="start-btn" onclick="startGame()">GIOCA</button>
-                    <div class="start-hint">
-                        Tocca per ruotare<br>
-                        Scorri per muovere<br>
-                        Pulsanti touch disponibili
-                    </div>
-                </div>
-                <div class="game-over-overlay" id="game-over">
-                    <div class="game-over-text">GAME OVER</div>
-                    <div class="final-score" id="final-score">Punteggio: 0</div>
-                    <button class="restart-button" onclick="restartGame()">Ricomincia</button>
-                </div>
-                <div class="pause-overlay" id="pause">PAUSA</div>
+        <!-- Side panel -->
+        <div class="side-panel">
+            <div class="panel-box">
+                <h3>Prossimo</h3>
+                <canvas id="next-piece-canvas"></canvas>
             </div>
-
-            <div class="side-panel">
-                <div class="panel-box">
-                    <h3>Punteggio</h3>
-                    <div class="score-display" id="score">0</div>
-                </div>
-                <div class="panel-box">
-                    <h3>Prossimo</h3>
-                    <canvas id="next-piece-canvas"></canvas>
+            <div class="panel-box">
+                <h3>Controlli</h3>
+                <div style="font-size:clamp(0.45rem,1.6vw,0.55rem);color:rgba(255,255,255,0.4);line-height:1.6">
+                    ← → Muovi<br>↑ Ruota<br>↓ Scendi<br>Drop: Caduta
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Touch Controls -->
-        <div class="touch-controls" id="touch-controls">
-            <button class="touch-btn" data-action="rotate">↻</button>
-            <button class="touch-btn" data-action="up">↑</button>
-            <button class="touch-btn" data-action="pause">⏸</button>
-            <button class="touch-btn" data-action="left">←</button>
-            <button class="touch-btn" data-action="down">↓</button>
-            <button class="touch-btn" data-action="right">→</button>
-            <button class="touch-btn drop-btn" data-action="drop">⬇ CADUTA ⬇</button>
-        </div>
+    <!-- Touch Controls -->
+    <div class="controls-bar">
+        <button class="ctrl-btn" data-action="rotate">↻</button>
+        <button class="ctrl-btn" data-action="left">←</button>
+        <button class="ctrl-btn" data-action="down">↓</button>
+        <button class="ctrl-btn" data-action="right">→</button>
+        <button class="ctrl-btn" data-action="pause">⏸</button>
+        <button class="ctrl-btn drop-ctrl" data-action="drop">⬇ CADUTA ⬇</button>
     </div>
 
     <script>
@@ -398,11 +283,107 @@
         let score = 0;
         let level = 1;
         let lines = 0;
+        let combo = 0;
         let gameLoop = null;
         let isGameOver = false;
         let isPaused = false;
         let isGameStarted = false;
         let dropInterval = 1000;
+        let rainbowMode = false;
+        let particles = [];
+        let konamiBuffer = '';
+        const KONAMI_CODE = 'ArrowUpArrowUpArrowDownArrowDownArrowLeftArrowRightArrowLeftArrowRightb';
+
+        // Nomi dei livelli
+        const LEVEL_NAMES = [
+            'Principiante', 'Novellino', 'Apprendista', 'Dilettante', 'Giocatore',
+            'Avanzato', 'Esperto', 'Veterano', 'Maestro', 'Gran Maestro',
+            'Leggenda', 'Divino', 'Olimpico', 'Cosmico', 'Eterno'
+        ];
+
+        function getLevelName(l) {
+            const idx = Math.min(l - 1, LEVEL_NAMES.length - 1);
+            return LEVEL_NAMES[idx] || `Livello ${l}`;
+        }
+
+        // Particelle
+        function spawnParticles(rowY) {
+            for (let i = 0; i < 40; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: rowY * BLOCK_SIZE + BLOCK_SIZE / 2,
+                    vx: (Math.random() - 0.5) * 6,
+                    vy: (Math.random() - 0.5) * 4 - 2,
+                    life: 1,
+                    decay: 0.015 + Math.random() * 0.02,
+                    size: 2 + Math.random() * 4,
+                    hue: Math.random() * 360
+                });
+            }
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.08;
+                p.life -= p.decay;
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+        }
+
+        function drawParticles() {
+            particles.forEach(p => {
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = `hsl(${p.hue}, 100%, 65%)`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+        }
+
+        // Konami Code
+        function checkKonami(key) {
+            konamiBuffer += key;
+            if (konamiBuffer.length > KONAMI_CODE.length) konamiBuffer = konamiBuffer.slice(-KONAMI_CODE.length);
+            if (konamiBuffer === KONAMI_CODE) {
+                rainbowMode = !rainbowMode;
+                document.body.classList.toggle('rainbow-mode', rainbowMode);
+                showComboPopup(rainbowMode ? '🌈 RAINBOW MODE!' : '🌈 Disattivato');
+                konamiBuffer = '';
+            }
+        }
+
+        function showComboPopup(text) {
+            const el = document.getElementById('combo-popup');
+            if (!el) return;
+            el.textContent = text;
+            el.classList.add('show');
+            clearTimeout(el._timer);
+            el._timer = setTimeout(() => el.classList.remove('show'), 1500);
+        }
+
+        function flashLevelUp() {
+            const el = document.getElementById('level-up-flash');
+            if (!el) return;
+            el.classList.add('flash');
+            clearTimeout(el._timer);
+            el._timer = setTimeout(() => el.classList.remove('flash'), 800);
+        }
+
+        function updateLevelBar() {
+            const bar = document.getElementById('level-bar');
+            if (!bar) return;
+            const progress = (lines % 10) / 10 * 100;
+            bar.style.width = `${progress}%`;
+            if (rainbowMode) {
+                bar.style.background = 'linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #cc00ff)';
+            } else {
+                bar.style.background = 'linear-gradient(90deg, #00d4ff, #cc00ff)';
+            }
+        }
 
         // ==================== FUNZIONI BORDO ====================
         function createBoard() {
@@ -418,8 +399,14 @@
         function drawBlock(context, x, y, color, size) {
             const s = size || BLOCK_SIZE;
             const p = 1;
+            let drawColor = color;
 
-            context.fillStyle = color;
+            if (rainbowMode) {
+                const hue = ((x + y + Date.now() * 0.02) % 360 + 360) % 360;
+                drawColor = `hsl(${hue}, 100%, 60%)`;
+            }
+
+            context.fillStyle = drawColor;
             context.fillRect(x*s+p, y*s+p, s-p*2, s-p*2);
 
             // Highlight top-left
@@ -431,7 +418,7 @@
             context.fillRect(x*s+p, y*s+p, s-p*2, s-p*2);
 
             // Inner border highlight
-            context.strokeStyle = 'rgba(255,255,255,0.25)';
+            context.strokeStyle = rainbowMode ? `hsla(${(((x+y)*30+Date.now()*0.03)%360+360)%360}, 100%, 80%, 0.5)` : 'rgba(255,255,255,0.25)';
             context.lineWidth = 1;
             context.beginPath();
             context.moveTo((x+1)*s-p, y*s+p);
@@ -447,6 +434,13 @@
 
         function drawBoard() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Background
+            if (rainbowMode) {
+                const hue = (Date.now() * 0.01) % 360;
+                ctx.fillStyle = `hsl(${hue}, 30%, 8%)`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
 
             // Grid
             ctx.strokeStyle = 'rgba(255,255,255,0.04)';
@@ -471,11 +465,25 @@
                     ctx.globalAlpha = 1;
                 }
             }
+
+            // Particles
+            updateParticles();
+            drawParticles();
         }
 
         function drawPiece() {
             if (!currentPiece || isPaused || isGameOver) return;
             currentPiece.shape.forEach((row, y) => row.forEach((v, x) => { if(v) drawBlock(ctx, currentPiece.x+x, currentPiece.y+y, currentPiece.color); }));
+        }
+
+        // Animazione rendering continuo (per rainbow + particelle)
+        let animFrameId = null;
+        function renderLoop() {
+            if (!isPaused && !isGameOver && isGameStarted) {
+                drawBoard();
+                drawPiece();
+            }
+            animFrameId = requestAnimationFrame(renderLoop);
         }
 
         function drawNextPiece() {
@@ -531,20 +539,51 @@
             currentPiece.shape.forEach((row, y) => row.forEach((v, x) => { if(v && currentPiece.y+y >= 0) board[currentPiece.y+y][currentPiece.x+x] = currentPiece.color; }));
 
             let cleared = 0;
+            const clearedRows = [];
             for (let y = ROWS-1; y >= 0; y--) {
-                if (board[y].every(c => c !== null)) { board.splice(y,1); board.unshift(Array(COLS).fill(null)); cleared++; y++; }
+                if (board[y].every(c => c !== null)) { clearedRows.push(y); cleared++; y++; }
             }
 
             if (cleared > 0) {
+                // Combo system
+                combo++;
                 const pts = [0, 100, 300, 500, 800];
-                score += pts[cleared] * level;
+                const comboMultiplier = Math.min(combo, 5);
+                score += pts[cleared] * level * comboMultiplier;
+
+                // Particelle per ogni riga completata
+                clearedRows.forEach(ry => spawnParticles(ry));
+
+                // Rimuovi righe
+                clearedRows.sort((a,b) => a-b).forEach(ry => { board.splice(ry,1); board.unshift(Array(COLS).fill(null)); });
+
                 lines += cleared;
-                level = Math.floor(lines / 10) + 1;
-                dropInterval = Math.max(100, 1000 - (level-1) * 80);
-                clearInterval(gameLoop);
-                gameLoop = setInterval(update, dropInterval);
+                const newLevel = Math.floor(lines / 10) + 1;
+                if (newLevel > level) {
+                    level = newLevel;
+                    dropInterval = Math.max(100, 1000 - (level-1) * 80);
+                    clearInterval(gameLoop);
+                    gameLoop = setInterval(update, dropInterval);
+                    flashLevelUp();
+                    showComboPopup(`⬆ ${getLevelName(level)}!`);
+
+                    // Attiva rainbow mode ad alti livelli
+                    if (level >= 10 && !rainbowMode) {
+                        rainbowMode = true;
+                        document.body.classList.add('rainbow-mode');
+                        showComboPopup('🌈 Rainbow Mode sbloccato!');
+                    }
+                }
+
+                // Popup combo
+                if (combo > 1) {
+                    showComboPopup(`🔥 Combo x${comboMultiplier}!`);
+                }
+            } else {
+                combo = 0;
             }
 
+            updateLevelBar();
             updateUI();
             currentPiece = nextPiece;
             nextPiece = createPiece();
@@ -557,50 +596,60 @@
             document.getElementById('score').textContent = score.toLocaleString();
             document.getElementById('level').textContent = level;
             document.getElementById('lines').textContent = lines;
+            const comboEl = document.getElementById('combo-display');
+            if (comboEl) comboEl.textContent = `x${Math.min(combo + 1, 5)}`;
         }
 
         // ==================== FLUSSO DI GIOCO ====================
         function update() {
             if (isPaused || isGameOver) return;
             if (!movePiece(0, 1)) lockPiece();
-            drawBoard(); drawPiece();
         }
 
         function gameOver() {
             isGameOver = true;
             clearInterval(gameLoop);
+            cancelAnimationFrame(animFrameId);
             document.getElementById('final-score').textContent = `Punteggio: ${score.toLocaleString()}`;
-            document.getElementById('game-over').style.display = 'flex';
+            const finalLevelEl = document.getElementById('final-level');
+            if (finalLevelEl) finalLevelEl.textContent = `Livello raggiunto: ${level} (${getLevelName(level)})`;
+            document.getElementById('game-over').classList.add('active');
         }
 
         function startGame() {
-            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('start-screen').classList.remove('active');
             isGameStarted = true;
             restartGame();
         }
 
         function restartGame() {
             board = createBoard();
-            score = 0; level = 1; lines = 0; dropInterval = 1000;
+            score = 0; level = 1; lines = 0; combo = 0; dropInterval = 1000;
+            rainbowMode = false;
+            particles = [];
             isGameOver = false; isPaused = false;
             updateUI();
-            document.getElementById('game-over').style.display = 'none';
-            document.getElementById('pause').style.display = 'none';
+            updateLevelBar();
+            document.getElementById('game-over').classList.remove('active');
+            document.getElementById('pause-overlay').classList.remove('active');
             currentPiece = createPiece();
             nextPiece = createPiece();
             drawNextPiece();
             clearInterval(gameLoop);
+            cancelAnimationFrame(animFrameId);
             gameLoop = setInterval(update, dropInterval);
+            renderLoop();
         }
 
         function togglePause() {
             if (isGameOver) return;
             isPaused = !isPaused;
-            document.getElementById('pause').style.display = isPaused ? 'block' : 'none';
+            document.getElementById('pause-overlay').classList.toggle('active', isPaused);
         }
 
         // ==================== CONTROLLI TASTIERA ====================
         document.addEventListener('keydown', e => {
+            checkKonami(e.key);
             switch(e.key) {
                 case 'ArrowLeft': movePiece(-1,0); break;
                 case 'ArrowRight': movePiece(1,0); break;
@@ -609,7 +658,6 @@
                 case ' ': hardDrop(); e.preventDefault(); break;
                 case 'p': case 'P': togglePause(); break;
             }
-            drawBoard(); drawPiece();
         });
 
         // ==================== CONTROLLI TOUCH ====================
@@ -626,7 +674,6 @@
                     case 'drop': hardDrop(); break;
                     case 'pause': togglePause(); break;
                 }
-                drawBoard(); drawPiece();
             };
 
             btn.addEventListener('touchstart', e => { doAction(e);
@@ -646,12 +693,12 @@
             const t = e.touches[0];
             const dx = t.clientX - tx, dy = t.clientY - ty;
             const th = BLOCK_SIZE * 0.7;
-            if (Math.abs(dx) > th) { movePiece(dx>0?1:-1, 0); tx=t.clientX; drawBoard(); drawPiece(); }
-            if (dy > th) { softDrop(); ty=t.clientY; drawBoard(); drawPiece(); }
+            if (Math.abs(dx) > th) { movePiece(dx>0?1:-1, 0); tx=t.clientX; }
+            if (dy > th) { softDrop(); ty=t.clientY; }
         }, {passive:false});
         canvas.addEventListener('touchend', e => {
             e.preventDefault();
-            if (Date.now()-tt < 200) { rotatePiece(); drawBoard(); drawPiece(); }
+            if (Date.now()-tt < 200) { rotatePiece(); }
         }, {passive:false});
 
         // ==================== SERVICE WORKER INLINE ====================
@@ -668,9 +715,9 @@
 
         // ==================== MANIFEST INLINE ====================
         const manifest = {
-            name: "Tetris Avanzato",
-            short_name: "Tetris",
-            description: "Il classico gioco Tetris con grafica moderna e controlli touch",
+            name: "Tetris Wifiweb",
+            short_name: "Wifiweb Tetris",
+            description: "Il classico gioco Tetris con grafica moderna e controlli touch — Wifiweb Edition",
             start_url: ".",
             display: "standalone",
             orientation: "portrait",
